@@ -32,7 +32,7 @@ PROJECT_NAME = "Java Secure Properties App"
 PROJECT_DESCRIPTION = "Interface pour chiffrer/déchiffrer des valeurs via MuleSoft Secure Properties Tool."
 PROJECT_VERSION = "1.0.0"
 PROJECT_AUTHOR = "David CHOCHO"
-PROJECT_SOURCE_URL = "https://github.com/davidchocho/java-secure-properties-app"
+PROJECT_SOURCE_URL = "https://github.com/Davosthecool/java-secure-properties-app"
 
 
 def _load_executor_module():
