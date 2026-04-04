@@ -3,7 +3,7 @@ name: Build And Release Exe
 on:
   push:
     tags:
-      - 'v.*.*'
+      - 'v*'
 
 permissions:
   contents: write
@@ -18,25 +18,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Skip build when tag is not on main
-        if: github.event.base_ref != 'refs/heads/main'
-        run: |
-          echo "Tag commit is not on main. Skipping build and release."
-
       - name: Set up Python
-        if: github.event.base_ref == 'refs/heads/main'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        if: github.event.base_ref == 'refs/heads/main'
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
       - name: Write build properties from tag
-        if: github.event.base_ref == 'refs/heads/main'
         shell: bash
         env:
           TAG_VERSION: ${{ github.ref_name }}
@@ -67,17 +59,14 @@ jobs:
           PY
 
       - name: Build executable
-        if: github.event.base_ref == 'refs/heads/main'
         run: python build_exe.py
 
       - name: Verify build artifact exists
-        if: github.event.base_ref == 'refs/heads/main'
         shell: bash
         run: |
           test -f dist/secure-properties-app.exe
 
       - name: Create GitHub release and upload exe
-        if: github.event.base_ref == 'refs/heads/main'
         uses: softprops/action-gh-release@v2
         with:
           name: Java Secure Properties App ${{ github.ref_name }}
