@@ -28,11 +28,41 @@ from PyQt6.QtWidgets import (
 )
 
 
-PROJECT_NAME = "Java Secure Properties App"
-PROJECT_DESCRIPTION = "Interface pour chiffrer/déchiffrer des valeurs via MuleSoft Secure Properties Tool."
-PROJECT_VERSION = "1.0.0"
-PROJECT_AUTHOR = "David CHOCHO"
-PROJECT_SOURCE_URL = "https://github.com/Davosthecool/java-secure-properties-app"
+def _load_properties(properties_file: Path) -> dict[str, str]:
+	properties: dict[str, str] = {}
+	if not properties_file.exists():
+		return properties
+
+	for raw_line in properties_file.read_text(encoding="utf-8").splitlines():
+		line = raw_line.strip()
+		if not line or line.startswith("#"):
+			continue
+
+		if "=" not in line:
+			continue
+
+		key, value = line.split("=", 1)
+		key = key.strip()
+		value = value.strip()
+		if key:
+			properties[key] = value
+
+	return properties
+
+
+_project_properties = _load_properties(Path(__file__).with_name("build.properties"))
+
+PROJECT_NAME = _project_properties.get("PROJECT_NAME", "Java Secure Properties App")
+PROJECT_DESCRIPTION = _project_properties.get(
+	"PROJECT_DESCRIPTION",
+	"Interface pour chiffrer/déchiffrer des valeurs via MuleSoft Secure Properties Tool.",
+)
+PROJECT_VERSION = _project_properties.get("APP_VERSION", "dev")
+PROJECT_AUTHOR = _project_properties.get("PROJECT_AUTHOR", "David CHOCHO")
+PROJECT_SOURCE_URL = _project_properties.get(
+	"PROJECT_SOURCE_URL",
+	"https://github.com/Davosthecool/java-secure-properties-app",
+)
 
 
 def _load_executor_module():

@@ -1,0 +1,96 @@
+name: Build And Release Exe
+
+on:
+  push:
+    tags:
+      - 'v.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check that tag commit is on main
+        id: tag_on_main
+        shell: bash
+        run: |
+          if git branch -r --contains "$GITHUB_SHA" | grep -q "origin/main$"; then
+            echo "on_main=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "on_main=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip build when tag is not on main
+        if: steps.tag_on_main.outputs.on_main != 'true'
+        run: |
+          echo "Tag commit is not on main. Skipping build and release."
+
+      - name: Set up Python
+        if: steps.tag_on_main.outputs.on_main == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        if: steps.tag_on_main.outputs.on_main == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Write build properties from tag
+        if: steps.tag_on_main.outputs.on_main == 'true'
+        shell: bash
+        env:
+          TAG_VERSION: ${{ github.ref_name }}
+        run: |
+          python - << 'PY'
+          import os
+          from pathlib import Path
+
+          properties_path = Path("build.properties")
+          version = os.environ["TAG_VERSION"]
+
+          lines = properties_path.read_text(encoding="utf-8").splitlines() if properties_path.exists() else []
+          updated = False
+          new_lines = []
+
+          for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("APP_VERSION="):
+              new_lines.append(f"APP_VERSION={version}")
+              updated = True
+            else:
+              new_lines.append(line)
+
+          if not updated:
+            new_lines.append(f"APP_VERSION={version}")
+
+          properties_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
+          PY
+
+      - name: Build executable
+        if: steps.tag_on_main.outputs.on_main == 'true'
+        run: python build_exe.py
+
+      - name: Verify build artifact exists
+        if: steps.tag_on_main.outputs.on_main == 'true'
+        shell: bash
+        run: |
+          test -f dist/secure-properties-app.exe
+
+      - name: Create GitHub release and upload exe
+        if: steps.tag_on_main.outputs.on_main == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Java Secure Properties App ${{ github.ref_name }}
+          files: dist/secure-properties-app.exe
+          draft: false
+          prerelease: false
