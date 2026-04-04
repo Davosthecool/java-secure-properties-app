@@ -69,6 +69,8 @@ def build_exe() -> int:
 		"secure-properties-app",
 		"--windowed",
 		"--hidden-import",
+		"__future__",
+		"--hidden-import",
 		"PyQt6",
 		"--hidden-import",
 		"PyQt6.QtCore",
