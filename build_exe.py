@@ -76,8 +76,12 @@ def build_exe() -> int:
 		"PyQt6.QtCore",
 		"--hidden-import",
 		"PyQt6.QtWidgets",
+		"--hidden-import",
+		"yaml",
 		"--collect-submodules",
 		"PyQt6",
+		"--collect-submodules",
+		"yaml",
 	]
 
 	for data in data_files:
