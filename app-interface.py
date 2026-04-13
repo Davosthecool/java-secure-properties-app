@@ -93,7 +93,7 @@ class SecurePropertiesWindow(QMainWindow):
 	def __init__(self) -> None:
 		super().__init__()
 		self.setWindowTitle("MuleSoft Secure Properties Tool")
-		self.resize(600, 800)
+		self.resize(600, 600)
 		self._build_ui()
 
 	def _build_ui(self) -> None:
@@ -193,6 +193,7 @@ class SecurePropertiesWindow(QMainWindow):
 
 		radio_layout.addWidget(self.string_input_radio)
 		radio_layout.addWidget(self.yaml_input_radio)
+		radio_layout.addStretch(1)
 
 		button_layout.addWidget(self.execute_button, 0, 0)
 		button_layout.addWidget(self.clear_button, 0, 1)
