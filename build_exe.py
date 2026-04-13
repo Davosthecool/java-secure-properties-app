@@ -78,9 +78,13 @@ def build_exe() -> int:
 		"PyQt6.QtWidgets",
 		"--hidden-import",
 		"yaml",
+		"--copy-metadata",
+		"PyYAML",
 		"--collect-submodules",
 		"PyQt6",
 		"--collect-submodules",
+		"yaml",
+		"--collect-all",
 		"yaml",
 	]
 
