@@ -176,6 +176,11 @@ class SecurePropertiesWindow(QMainWindow):
 		group = QGroupBox("Input Data")
 		layout = QVBoxLayout()
 
+		radio_layout = QHBoxLayout()
+		self.string_input_radio = QRadioButton("String input")
+		self.yaml_input_radio = QRadioButton("YAML input")
+		self.string_input_radio.setChecked(True)
+
 		self.input_data = QTextEdit()
 		self.input_data.setPlaceholderText("Text to encrypt/decrypt")
 
@@ -186,9 +191,13 @@ class SecurePropertiesWindow(QMainWindow):
 		self.execute_button.clicked.connect(self._on_execute)
 		self.clear_button.clicked.connect(self._on_clear)
 
+		radio_layout.addWidget(self.string_input_radio)
+		radio_layout.addWidget(self.yaml_input_radio)
+
 		button_layout.addWidget(self.execute_button, 0, 0)
 		button_layout.addWidget(self.clear_button, 0, 1)
 
+		layout.addLayout(radio_layout)
 		layout.addWidget(self.input_data)
 		layout.addLayout(button_layout)
 		group.setLayout(layout)
@@ -293,6 +302,7 @@ class SecurePropertiesWindow(QMainWindow):
 		jar_path = self.jar_input.text().strip()
 		key = self.key_input.text().strip()
 		data = self.input_data.toPlainText().strip()
+		input_type = "string" if self.string_input_radio.isChecked() else "yaml"
 		is_encryption = self.encrypt_radio.isChecked()
 		algorithm = self.algorithm_combo.currentText()
 		mode = self.mode_combo.currentText()
@@ -302,6 +312,7 @@ class SecurePropertiesWindow(QMainWindow):
 		self.result_data.setPlainText("Running command...")
 
 		output = execute_secure_properties(
+			input_type=input_type,
 			jar_path=jar_path,
 			encryption_key=key,
 			data=data,

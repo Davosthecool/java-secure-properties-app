@@ -1,7 +1,122 @@
+import yaml
+from typing import Literal
 import subprocess
 
-
 def execute_secure_properties(
+    input_type: Literal["string", "yaml"],
+    jar_path: str,
+    encryption_key: str,
+    data: str,
+    is_encryption: bool,
+    algorithm: str,
+    mode: str,
+    use_random_iv: bool,
+) -> str:
+    """
+    Entrypoint function to execute the secure properties encryption/decryption process.
+
+    Args:
+        jar_path (str): The path to the JAR file that contains the encryption/decryption logic.
+        encryption_key (str): The key used for encryption or decryption.
+        data (str): The data to be encrypted or decrypted.
+        is_encryption (bool): True if encryption is requested, False for decryption.
+        algorithm (str): The encryption algorithm to use.
+        mode (str): The encryption mode to use.
+        use_random_iv (bool): Whether to use a random initialization vector.
+
+    Returns:
+        str: The result of the encryption or decryption process.
+    """
+    match input_type:
+        case "string":
+            return _run_secure_properties(
+                jar_path=jar_path,
+                encryption_key=encryption_key,
+                data=data,
+                is_encryption=is_encryption,
+                algorithm=algorithm,
+                mode=mode,
+                use_random_iv=use_random_iv,
+            )
+        case "yaml":
+            return _process_yaml_data(data, {
+                "jar_path": jar_path,
+                "encryption_key": encryption_key,
+                "is_encryption": is_encryption,
+                "algorithm": algorithm,
+                "mode": mode,
+                "use_random_iv": use_random_iv
+            })
+        case _:
+            raise ValueError(f"Unsupported input type: {input_type}")
+
+def _transform_yaml_data(input_data: dict, params: dict) -> dict:
+    """
+    Transforms YAML data by applying secure properties encryption/decryption to the values.
+
+    Args:
+        input_data (dict): The YAML data represented as a dictionary.
+        params (dict): The parameters for secure properties processing.
+    Returns:
+        dict: The transformed YAML data with encrypted/decrypted values.
+    """
+    result = {}
+    
+    for key, value in input_data.items():
+        if isinstance(value, dict):
+            result[key] = _transform_yaml_data(value, params)
+        else:
+            result[key] = _run_secure_properties(**params, data=value)
+    
+    return result
+    
+def _process_yaml_data(yaml_data: str, params: dict) -> str:
+    """
+    Processes YAML data for secure properties encryption/decryption.
+
+    Args:
+        yaml_data (str): The YAML data to be processed.
+        params (dict): The parameters for secure properties processing.
+    Returns:
+        str: The processed YAML data.
+    """
+    try:
+        data_dict : dict = yaml.safe_load(yaml_data)
+        output_dict = _transform_yaml_data(data_dict, params)
+        processed_yaml = yaml.dump(output_dict)
+        return processed_yaml
+    except yaml.YAMLError as exc:
+        return f"An error occurred while processing YAML data: {exc}"
+
+
+def _clean_input_string(input_string: str) -> str:
+    """
+    Cleans the input string for secure properties processing.
+
+    Args:
+        input_string (str): The string to be cleaned.
+    Returns:
+        str: The cleaned string.
+    """
+    newstring = input_string.strip()
+    if newstring.startswith('![') and newstring.endswith(']'):
+        newstring = newstring[2:-1]
+    return newstring
+
+def _format_output_string(output_string: str) -> str:
+    """
+    Formats the output string from secure properties processing.
+
+    Args:
+        output_string (str): The string to be formatted.
+    Returns:
+        str: The formatted string.
+    """
+    newstring = output_string.strip()
+    newstring = f"![{newstring}]"
+    return newstring
+
+def _run_secure_properties(
     jar_path: str,
     encryption_key: str,
     data: str,
@@ -25,6 +140,8 @@ def execute_secure_properties(
         str: The result of the encryption or decryption process.
     """
     
+    if not is_encryption:
+        data = _clean_input_string(data)
     try:
         action = "encrypt" if is_encryption else "decrypt"
         command = [
@@ -58,6 +175,9 @@ def execute_secure_properties(
             command,
             **run_kwargs,
         )
-        return result.stdout.strip()
+        output = result.stdout.strip()
+        if is_encryption:
+            output = _format_output_string(result.stdout)
+        return output
     except subprocess.CalledProcessError as exc:
         return f"An error occurred in java secure properties tool execution: {exc.stderr}"
