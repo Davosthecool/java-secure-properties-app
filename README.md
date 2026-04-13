@@ -14,6 +14,7 @@ Le projet fournit:
 - Choix de l'algorithme: `AES`, `Blowfish`, `DES`, `DESede`
 - Choix du mode: `CBC`, `CFB`, `ECB`, `OFB`
 - Option `Use random IV`
+- Prise en charge de l'entrée au format YAML
 - Copie du résultat dans le presse-papiers
 
 ## Prérequis (pour le développement)
