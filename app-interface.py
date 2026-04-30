@@ -27,6 +27,8 @@ from PyQt6.QtWidgets import (
 	QWidget,
 )
 
+from secure_properties_executor import execute_secure_properties
+
 
 def _load_properties(properties_file: Path) -> dict[str, str]:
 	properties: dict[str, str] = {}
@@ -63,22 +65,6 @@ PROJECT_SOURCE_URL = _project_properties.get(
 	"PROJECT_SOURCE_URL",
 	"https://github.com/Davosthecool/java-secure-properties-app",
 )
-
-
-def _load_executor_module():
-	executor_path = Path(__file__).with_name("secure-properties-executor.py")
-	spec = importlib.util.spec_from_file_location("secure_properties_executor", executor_path)
-	if spec is None or spec.loader is None:
-		raise ImportError("Unable to load secure-properties-executor.py")
-
-	module = importlib.util.module_from_spec(spec)
-	spec.loader.exec_module(module)
-	return module
-
-
-_executor = _load_executor_module()
-execute_secure_properties = _executor.execute_secure_properties
-
 
 def _find_default_jar() -> str:
 	default_path = Path(__file__).resolve().parent / "ressources" / "secure-properties-tool-j17.jar"
