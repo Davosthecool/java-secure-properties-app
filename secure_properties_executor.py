@@ -1,6 +1,10 @@
 import yaml
 from typing import Literal
 import subprocess
+from Cryptodome.Cipher import AES
+from Cryptodome.Util.Padding import pad
+import base64
+import os
 
 def execute_secure_properties(
     input_type: Literal["string", "yaml"],
@@ -181,3 +185,53 @@ def _run_secure_properties(
         return output
     except subprocess.CalledProcessError as exc:
         return f"An error occurred in java secure properties tool execution: {exc.stderr}"
+    
+    
+def _run_secure_properties_python(
+    jar_path: str,
+    encryption_key: str,
+    data: str,
+    is_encryption: bool,
+    algorithm: str,
+    mode: str,
+    use_random_iv: bool,
+) -> str:
+    """
+    A Python implementation of the secure properties encryption/decryption process for testing purposes.
+
+    Args:
+        jar_path (str): The path to the JAR file that contains the encryption/decryption logic (not used in this implementation).
+        encryption_key (str): The key used for encryption or decryption.
+        data (str): The data to be encrypted or decrypted.
+        is_encryption (bool): True if encryption is requested, False for decryption.
+        algorithm (str): The encryption algorithm to use (not used in this implementation).
+        mode (str): The encryption mode to use (not used in this implementation).
+        use_random_iv (bool): Whether to use a random initialization vector (not used in this implementation).
+    Returns:
+        str: The result of the encryption or decryption process.
+    """
+    
+    match algorithm:
+        case "AES":
+            match mode:
+                case "CBC":
+                    mode = AES.MODE_CBC
+                case _:
+                    raise ValueError(f"Unsupported mode: {mode}")
+            
+            key = encryption_key.encode()
+            if is_encryption:
+                iv = os.urandom(16) if use_random_iv else b'\x00' * 16
+                cipher = AES.new(key, mode, iv=iv)
+                padded_message = pad(data.encode(), AES.block_size)
+                ciphertext = cipher.encrypt(padded_message)
+                return base64.b64encode(ciphertext).decode()
+            else:
+                raw_data = base64.b64decode(data)
+                iv = raw_data[:16]
+                ciphertext = raw_data[16:]
+                cipher = AES.new(key, mode, iv=iv)
+                decrypted_padded_message = cipher.decrypt(ciphertext).decode().strip() # Remove padding
+                return decrypted_padded_message
+        case _:
+            raise ValueError(f"Unsupported algorithm: {algorithm}")
