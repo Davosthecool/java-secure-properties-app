@@ -47,8 +47,8 @@ def build_exe() -> int:
 
 	separator = ";" if sys.platform.startswith("win") else ":"
 	data_files = [
-		f"{project_root / 'app-interface.py'}{separator}.",
-		f"{project_root / 'secure-properties-executor.py'}{separator}.",
+		f"{project_root / 'app_interface.py'}{separator}.",
+		f"{project_root / 'secure_properties_executor.py'}{separator}.",
 		f"{build_properties_file}{separator}.",
 		f"{resources_dir}{separator}ressources",
 	]
@@ -66,7 +66,7 @@ def build_exe() -> int:
 		"--specpath",
 		str(dist_dir),
 		"--name",
-		"secure-properties-app",
+		"secure_properties_app",
 		"--windowed",
 		"--hidden-import",
 		"__future__",
@@ -101,7 +101,7 @@ def build_exe() -> int:
 		return result.returncode
 
 	print("Build succeeded.")
-	print(f"EXE file: {project_root / 'dist' / 'secure-properties-app.exe'}")
+	print(f"EXE file: {project_root / 'dist' / 'secure_properties_app.exe'}")
 	return 0
 
 
