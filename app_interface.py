@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-import importlib.util
 import sys
 
 from PyQt6.QtCore import Qt
@@ -65,6 +64,8 @@ PROJECT_SOURCE_URL = _project_properties.get(
 	"PROJECT_SOURCE_URL",
 	"https://github.com/Davosthecool/java-secure-properties-app",
 )
+JRE_VERSION = _project_properties.get("JRE_VERSION", "")
+JAR_VERSION = _project_properties.get("SECURE_PROPERTIES_TOOL_VERSION", "")
 
 def _find_default_jar() -> str:
 	default_path = Path(__file__).resolve().parent / "ressources" / "secure-properties-tool.jar"
@@ -231,11 +232,12 @@ class SecurePropertiesWindow(QMainWindow):
 
 		layout = QVBoxLayout(dialog)
 		info_label = QLabel(
-			f"<b>{PROJECT_NAME}</b><br><br>"
-			f"{PROJECT_DESCRIPTION}<br><br>"
-			f"<b>Version:</b> {PROJECT_VERSION}<br>"
-			f"<b>Auteur:</b> {PROJECT_AUTHOR}<br>"
-			f"<b>Source code:</b> <a href='{PROJECT_SOURCE_URL}'>{PROJECT_SOURCE_URL}</a>"
+			f"<b>{PROJECT_NAME}</b> <i>{PROJECT_VERSION}</i><br><br>" +
+			f"{PROJECT_DESCRIPTION}<br><br>" +
+			f"<b>Auteur:</b> {PROJECT_AUTHOR}<br>" +
+			f"<b>Source code:</b> <a href='{PROJECT_SOURCE_URL}'>{PROJECT_SOURCE_URL}</a><br><br>" +
+			(f"<b>JRE version:</b> {JRE_VERSION}<br>" if JRE_VERSION else "") +
+			(f"<b>Secure Properties Tool:</b> Release of {JAR_VERSION}" if JAR_VERSION else "")
 		)
 		info_label.setTextFormat(Qt.TextFormat.RichText)
 		info_label.setTextInteractionFlags(Qt.TextInteractionFlag.TextBrowserInteraction)
