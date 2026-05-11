@@ -67,13 +67,20 @@ PROJECT_SOURCE_URL = _project_properties.get(
 )
 
 def _find_default_jar() -> str:
-	default_path = Path(__file__).resolve().parent / "ressources" / "secure-properties-tool-j17.jar"
+	default_path = Path(__file__).resolve().parent / "ressources" / "secure-properties-tool.jar"
 
 	if default_path.exists():
 		return str(default_path)
 
 	return ""
 
+def _find_default_jre() -> str:
+	default_path = Path(__file__).resolve().parent / "ressources" / "jre"
+
+	if default_path.exists():
+		return str(default_path)
+
+	return ""
 
 class SecurePropertiesWindow(QMainWindow):
 	def __init__(self) -> None:
@@ -107,15 +114,6 @@ class SecurePropertiesWindow(QMainWindow):
 		group = QGroupBox("Configuration")
 		form = QFormLayout()
 
-		default_jar = _find_default_jar()
-
-		self.jar_input = QLineEdit(default_jar)
-		self.browse_jar_button = QPushButton("Browse...")
-		self.browse_jar_button.clicked.connect(self._on_browse_jar)
-
-		jar_layout = QHBoxLayout()
-		jar_layout.addWidget(self.jar_input)
-		jar_layout.addWidget(self.browse_jar_button)
 		self.key_input = QLineEdit()
 		self.key_input.setPlaceholderText("Encryption key")
 		self.key_input.setEchoMode(QLineEdit.EchoMode.Password)
@@ -135,7 +133,6 @@ class SecurePropertiesWindow(QMainWindow):
 		self.random_iv_checkbox = QCheckBox("Use random IV")
 		self.random_iv_checkbox.setChecked(False)
 
-		form.addRow("JAR path", jar_layout)
 		form.addRow("Key", key_layout)
 		form.addRow("Algorithm", self.algorithm_combo)
 		form.addRow("Mode", self.mode_combo)
@@ -263,16 +260,9 @@ class SecurePropertiesWindow(QMainWindow):
 		QMessageBox.information(self, "Copied", "Result copied to clipboard.")
 
 	def _validate_form(self) -> bool:
-		jar_path = self.jar_input.text().strip()
 		key = self.key_input.text().strip()
 		data = self.input_data.toPlainText().strip()
 
-		if not jar_path:
-			QMessageBox.warning(self, "Missing value", "Please provide a JAR path.")
-			return False
-		if not Path(jar_path).exists():
-			QMessageBox.warning(self, "Invalid path", "JAR file not found.")
-			return False
 		if not key:
 			QMessageBox.warning(self, "Missing value", "Please provide an encryption key.")
 			return False
@@ -286,7 +276,6 @@ class SecurePropertiesWindow(QMainWindow):
 		if not self._validate_form():
 			return
 
-		jar_path = self.jar_input.text().strip()
 		key = self.key_input.text().strip()
 		data = self.input_data.toPlainText().strip()
 		input_type = "string" if self.string_input_radio.isChecked() else "yaml"
@@ -300,7 +289,8 @@ class SecurePropertiesWindow(QMainWindow):
 
 		output = execute_secure_properties(
 			input_type=input_type,
-			jar_path=jar_path,
+			jre_path=_find_default_jre(),
+			jar_path=_find_default_jar(),
 			encryption_key=key,
 			data=data,
 			is_encryption=is_encryption,

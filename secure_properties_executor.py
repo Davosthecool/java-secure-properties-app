@@ -8,6 +8,7 @@ import os
 
 def execute_secure_properties(
     input_type: Literal["string", "yaml"],
+    jre_path: str,
     jar_path: str,
     encryption_key: str,
     data: str,
@@ -20,6 +21,8 @@ def execute_secure_properties(
     Entrypoint function to execute the secure properties encryption/decryption process.
 
     Args:
+        input_type (Literal["string", "yaml"]): The type of input data.
+        jre_path (str): The path to the JRE to use for executing the JAR file.
         jar_path (str): The path to the JAR file that contains the encryption/decryption logic.
         encryption_key (str): The key used for encryption or decryption.
         data (str): The data to be encrypted or decrypted.
@@ -34,6 +37,7 @@ def execute_secure_properties(
     match input_type:
         case "string":
             return _run_secure_properties(
+                jre_path=jre_path,
                 jar_path=jar_path,
                 encryption_key=encryption_key,
                 data=data,
@@ -44,6 +48,7 @@ def execute_secure_properties(
             )
         case "yaml":
             return _process_yaml_data(data, {
+                "jre_path": jre_path,
                 "jar_path": jar_path,
                 "encryption_key": encryption_key,
                 "is_encryption": is_encryption,
@@ -121,6 +126,7 @@ def _format_output_string(output_string: str) -> str:
     return newstring
 
 def _run_secure_properties(
+    jre_path: str,
     jar_path: str,
     encryption_key: str,
     data: str,
@@ -133,6 +139,7 @@ def _run_secure_properties(
     Executes the secure properties encryption/decryption process using the provided JAR file, encryption key, and properties.
 
     Args:
+        jre_path (str): The path to the JRE to use for executing the JAR file.
         jar_path (str): The path to the JAR file that contains the encryption/decryption logic.
         encryption_key (str): The key used for encryption or decryption.
         data (str): The data to be encrypted or decrypted.
@@ -146,10 +153,13 @@ def _run_secure_properties(
     
     if not is_encryption:
         data = _clean_input_string(data)
+        
+    java_executable = os.path.join(jre_path, "bin", "java") if jre_path else "java"
+    
     try:
         action = "encrypt" if is_encryption else "decrypt"
         command = [
-            "java",
+            java_executable,
             "-cp",
             jar_path,
             "com.mulesoft.tools.SecurePropertiesTool",
